@@ -1,15 +1,21 @@
 # cmake-git-only-example
 
-#### Build a MulleFoundation executable with `mulle-clang`, CMake and Git
+> This project needs mulle-objc 0.31 minimum
 
-A minimal example of building an Objective-C executable against
-[MulleFoundation](https://github.com/MulleFoundation/MulleFoundation) using
-only [Git](https://git-scm.com/), [CMake](https://cmake.org/) and
-[mulle-clang](https://github.com/mulle-cc/mulle-clang-project) — no
-[mulle-sde](https://github.com/mulle-sde/mulle-sde), no pre-built SDK.
+#### 🧬 Build a MulleFoundation executable with `mulle-clang`, CMake and Git
 
-Dependencies are Git submodules (see [`.gitmodules`](.gitmodules)) built from
-source via CMake's `add_subdirectory()`.
+Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
+`add_subdirectory()` does the rest.
+
+No [mulle-sde](https://github.com/mulle-sde/mulle-sde),
+no prebuilt SDK, no package manager — just [Git](https://git-scm.com/),
+[CMake](https://cmake.org/) and [mulle-clang](https://github.com/mulle-cc/mulle-clang-project)
+turning an Objective-C source file into a running
+[MulleFoundation](https://github.com/MulleFoundation/MulleFoundation)
+executable.
+
+Every dependency is a plain Git submodule (see [`.gitmodules`](.gitmodules)),
+built from source alongside your own code.
 
 [![CI](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml/badge.svg)](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml)
 
@@ -49,11 +55,29 @@ git submodule update --init --recursive
 
 Submodules land under `stash/` as ordinary Git checkouts.
 
-### Setting up the submodules from scratch (maintainers)
+## Build
 
-`stash/` must not be added as one plain directory — that stages every
-dependency file instead of a submodule gitlink. Each dependency is registered
-individually, from a clean `stash/`:
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
+cmake --build build --parallel
+./build/mulle-objc-executable
+```
+
+For a Debug build, use a separate build directory:
+
+```sh
+cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
+cmake --build build-debug --parallel
+./build-debug/mulle-objc-executable
+```
+
+There is no install step; delete `build/`/`build-debug/` for a clean
+configure. Build outputs are Git-ignored.
+
+## Setting up the submodules from scratch (maintainers)
+
+Register each dependency individually with `git submodule add`, from a clean
+`stash/`:
 
 ```sh
 git submodule add https://github.com/MulleWeb/MulleBase64.git stash/MulleBase64
@@ -76,25 +100,6 @@ git submodule status
 
 Each `stash/<name>` should show as a single added gitlink, and each
 dependency should list one commit SHA.
-
-## Build
-
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build --parallel
-./build/mulle-objc-executable
-```
-
-For a Debug build, use a separate build directory:
-
-```sh
-cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build-debug --parallel
-./build-debug/mulle-objc-executable
-```
-
-There is no install step; delete `build/`/`build-debug/` for a clean
-configure. Build outputs are Git-ignored.
 
 ## How the build is wired
 
@@ -119,4 +124,3 @@ pre-installed SDK.
 
 CI currently validates Ubuntu and macOS; Windows is untested and depends on
 `mulle-clang`/runtime/submodule availability there.
-

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out source and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # This action installs mulle-clang
+      - name: Install mulle-clang
+        uses: mulle-cc/github-ci@v12
+
+      - name: Show tool versions
+        run: |
+          git --version
+          cmake --version
+          mulle-clang --version
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=mulle-clang
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run example
+        run: |
+          output="$(./build/mulle-objc-executable)"
+          printf '%s\n' "$output"
+          test "$output" = "$(printf 'VfL Bochum 1848\nVmZMIEJvY2h1bSAxODQ4')"

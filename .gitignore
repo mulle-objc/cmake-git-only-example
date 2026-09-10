@@ -1,0 +1,14 @@
+# Consumer build output (regenerable)
+/build/
+
+# The stash/ dir is the simulated "git clone" of external dependencies
+# (vendored copies of other repos). It is NOT this consumer's own source and
+# must not be tracked here - a real consumer would clone/submodule these.
+# A local fresh-source validation stash is ignored for the same reason
+/stash2/
+# Editor / OS noise
+*.swp
+.DS_Store
+build-*/
+*.old
+.mulle/etc/make/build-dir

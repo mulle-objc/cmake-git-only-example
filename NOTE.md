@@ -34,7 +34,7 @@ Point CMake at `stash2` with `-DSTASH_DIR=stash2`:
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang -DSTASH_DIR=stash2
 cmake --build build --parallel
-./build/mulle-objc-executable
+./build/cmake-git-only-example
 ```
 
 `STASH_DIR` is a CMake cache variable, so once set it sticks for that build

@@ -44,6 +44,6 @@ jobs:
 
       - name: Run example
         run: |
-          output="$(./build/mulle-objc-executable)"
+          output="$(./build/cmake-git-only-example)"
           printf '%s\n' "$output"
           test "$output" = "$(printf 'VfL Bochum 1848\nVmZMIEJvY2h1bSAxODQ4')"

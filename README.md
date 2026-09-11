@@ -1,8 +1,13 @@
 # cmake-git-only-example
 
 > This project needs mulle-objc 0.31 minimum
+>
+> This is a companion project to the
+> [De Re mulle-objc](https://mulle-kybernetik.com/de-re-mulle-objc)
+> Developer Guide.
 
 #### 🧬 Build a MulleFoundation executable with `mulle-clang`, CMake and Git
+
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 `add_subdirectory()` does the rest.
@@ -16,6 +21,9 @@ executable.
 
 Every dependency is a plain Git submodule (see [`.gitmodules`](.gitmodules)),
 built from source alongside your own code.
+
+The project and executable take their name from the directory you clone into, so
+rename the clone to rename your program.
 
 [![CI](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml/badge.svg)](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml)
 
@@ -60,7 +68,7 @@ Submodules land under `stash/` as ordinary Git checkouts.
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
 cmake --build build --parallel
-./build/mulle-objc-executable
+./build/cmake-git-only-example
 ```
 
 For a Debug build, use a separate build directory:
@@ -68,7 +76,7 @@ For a Debug build, use a separate build directory:
 ```sh
 cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
 cmake --build build-debug --parallel
-./build-debug/mulle-objc-executable
+./build-debug/cmake-git-only-example
 ```
 
 There is no install step; delete `build/`/`build-debug/` for a clean
@@ -104,7 +112,7 @@ dependency should list one commit SHA.
 ## How the build is wired
 
 The top-level [`CMakeLists.txt`](CMakeLists.txt) adds the dependencies in
-order and links `mulle-objc-executable` against them:
+order and links the executable (named after the directory) against them:
 
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
@@ -119,7 +127,7 @@ pre-installed SDK.
 * Linux and other non-Apple Unix: `--export-dynamic` plus a separate `libm` link
 * macOS: required symbols exported individually; math symbols come from the system
 * Windows: exports all symbols needed by the runtime, no `libm` target;
-  output is `mulle-objc-executable.exe`, possibly under `build/Release/` with
+  output is `cmake-git-only-example.exe`, possibly under `build/Release/` with
   a multi-config generator
 
 CI currently validates Ubuntu and macOS; Windows is untested and depends on

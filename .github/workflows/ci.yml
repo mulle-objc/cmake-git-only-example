@@ -38,7 +38,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S ${{ matrix.consumer }} -B build \
+          cmake -S ${{ matrix.consumer == 'fetchcontent' && '.' || matrix.consumer }} -B build \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_COMPILER=mulle-clang
 

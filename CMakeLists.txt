@@ -1,10 +1,10 @@
 #
-# FetchContent consumer.
+# FetchContent consumer (default).
 #
-#   cmake -S fetchcontent -B build -DCMAKE_BUILD_TYPE=Release \
+#   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 #         -DCMAKE_C_COMPILER=mulle-clang
 #
-# Same program and the same transitive link list as ../transitive, but the
+# Same program and the same transitive link list as transitive/, but the
 # dependencies are not git submodules: cmake clones them from GitHub at
 # configure time with FetchContent. There is no stash/ and no recorded commit;
 # GIT_TAG master means master. The cost is that a build needs network access,
@@ -16,8 +16,8 @@
 cmake_minimum_required( VERSION 3.24...99.99)
 
 # The project and its executable are named after the repository directory,
-# which is the parent of this one.
-get_filename_component( PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." REALPATH)
+# which is this one.
+get_filename_component( PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" REALPATH)
 get_filename_component( PROJECT_NAME "${PROJECT_DIR}" NAME)
 project( "${PROJECT_NAME}" VERSION 0.1.0 LANGUAGES C)
 
@@ -65,7 +65,7 @@ set( IDE_SUPPORT OFF CACHE BOOL "Disable mulle-sde IDE helper targets")
 
 # Dependencies, in dependency order. FetchContent_MakeAvailable() clones (or
 # reuses) the source and calls add_subdirectory() on it, so each root is again
-# declared directly after the dependency that owns it. See ../transitive for
+# declared directly after the dependency that owns it. See transitive/ for
 # the header-root rules.
 FetchContent_Declare( mulle-core
    GIT_REPOSITORY https://github.com/mulle-core/mulle-core.git

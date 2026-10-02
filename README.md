@@ -57,8 +57,8 @@ git clone https://github.com/MulleFoundation/cmake-git-only-example.git
 cd cmake-git-only-example
 ```
 
-That is all the `fetchcontent/` project needs — cmake clones the dependencies
-itself.
+That is all the default (FetchContent) project needs — cmake clones the
+dependencies itself.
 
 
 The `transitive/` and `nontransitive/` variants use git submodules
@@ -80,7 +80,7 @@ one you want:
 
 ```sh
 # FetchContent: cmake clones the dependencies at configure time (recommended)
-cmake -S fetchcontent -B build \
+cmake -S . -B build \
       -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
 cmake --build build --parallel
 ./build/cmake-git-only-example
@@ -103,7 +103,7 @@ All three print the same two lines.
 A Debug build is the same with a separate build directory:
 
 ```sh
-cmake -S fetchcontent -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
+cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
 cmake --build build-debug --parallel
 ./build-debug/cmake-git-only-example
 ```
@@ -113,8 +113,8 @@ Build outputs are Git-ignored.
 
 ## The three consumers
 
-* [`fetchcontent/CMakeLists.txt`](fetchcontent/CMakeLists.txt) is the recommended
-  project. It uses the transitive link (below), and hands the dependency
+* [`CMakeLists.txt`](CMakeLists.txt) is the recommended project and the default
+  one (`cmake -S .`). It uses the transitive link (below), and hands the dependency
   checkout to `FetchContent`: each dependency is cloned from GitHub at configure
   time, tracking `master` (`-DDEPENDENCY_TAG=` picks another branch or tag).
   Point `-DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir>` at a local checkout to build
@@ -134,7 +134,7 @@ mixture of the shapes.
 
 ## How the build is wired
 
-Each project's [`CMakeLists.txt`](fetchcontent/CMakeLists.txt) adds the
+Each project's [`CMakeLists.txt`](CMakeLists.txt) adds the
 dependencies in order and links the executable (named after the repository
 directory) against them:
 
@@ -197,10 +197,10 @@ dependency should list one commit SHA.
 To edit a dependency and rebuild against it immediately, point the build at
 your working checkout instead of a fresh clone.
 
-With `fetchcontent/`, override one dependency at a time:
+With the default project, override one dependency at a time:
 
 ```sh
-cmake -S fetchcontent -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
       -DFETCHCONTENT_SOURCE_DIR_MULLE-CORE=/path/to/your/mulle-core
 ```
 

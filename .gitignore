@@ -12,3 +12,8 @@
 build-*/
 *.old
 .mulle/etc/make/build-dir
+research/
+BASICS.md
+stash2
+*.bak
+*.orig

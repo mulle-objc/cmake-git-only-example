@@ -14,14 +14,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, macos-14]
+        consumer: [transitive, nontransitive, fetchcontent]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Check out source and submodules
+      - name: Check out source
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Check out submodules (tracking master)
+        if: matrix.consumer != 'fetchcontent'
+        run: git submodule update --init --recursive --remote
 
       # This action installs mulle-clang
       - name: Install mulle-clang
@@ -35,7 +38,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S . -B build \
+          cmake -S ${{ matrix.consumer }} -B build \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_COMPILER=mulle-clang
 

@@ -1,27 +1,36 @@
 [submodule "stash/MulleBase64"]
 	path = stash/MulleBase64
 	url = https://github.com/MulleWeb/MulleBase64.git
+	branch = master
 [submodule "stash/mulle-core"]
 	path = stash/mulle-core
 	url = https://github.com/mulle-core/mulle-core.git
+	branch = master
 [submodule "stash/mulle-core-all-load"]
 	path = stash/mulle-core-all-load
 	url = https://github.com/mulle-core/mulle-core-all-load.git
+	branch = master
 [submodule "stash/MulleFoundation"]
 	path = stash/MulleFoundation
 	url = https://github.com/MulleFoundation/MulleFoundation.git
+	branch = master
 [submodule "stash/MulleFoundationBase"]
 	path = stash/MulleFoundationBase
 	url = https://github.com/MulleFoundation/MulleFoundationBase.git
+	branch = master
 [submodule "stash/MulleFoundation-startup"]
 	path = stash/MulleFoundation-startup
 	url = https://github.com/MulleFoundation/MulleFoundation-startup.git
+	branch = master
 [submodule "stash/MulleObjC"]
 	path = stash/MulleObjC
 	url = https://github.com/mulle-objc/MulleObjC.git
+	branch = master
 [submodule "stash/mulle-objc-list"]
 	path = stash/mulle-objc-list
 	url = https://github.com/mulle-objc/mulle-objc-list.git
+	branch = master
 [submodule "stash/mulle-objc-runtime"]
 	path = stash/mulle-objc-runtime
 	url = https://github.com/mulle-objc/mulle-objc-runtime.git
+	branch = master

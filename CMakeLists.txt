@@ -95,6 +95,13 @@ FetchContent_Declare( MulleObjC
    GIT_TAG        "${DEPENDENCY_TAG}")
 FetchContent_MakeAvailable( MulleObjC)
 
+# The runtime looks up __register_mulle_objc_universe, which the startup
+# library supplies for an executable that uses MulleObjC without Foundation.
+FetchContent_Declare( MulleObjC-startup
+   GIT_REPOSITORY https://github.com/mulle-objc/MulleObjC-startup.git
+   GIT_TAG        "${DEPENDENCY_TAG}")
+FetchContent_MakeAvailable( MulleObjC-startup)
+
 
 # Executable, named after the repository directory.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -106,6 +113,7 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 # Only what src/main.m uses directly; the rest arrives through the link.
 target_link_libraries( "${EXECUTABLE_NAME}"
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleObjC>"
+   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleObjC-startup>"
 )
 
 # No explicit libm here: the libraries re-export their system libraries

@@ -11,7 +11,8 @@
 This branch is the stripped-down companion to the MulleFoundation example: it
 removes the Foundation layers (`MulleFoundationBase`, `MulleFoundation` and
 `MulleFoundation-startup`) and the `MulleBase64` category, and builds only
-[MulleObjC](https://github.com/mulle-objc/MulleObjC) and the runtime beneath it.
+[MulleObjC](https://github.com/mulle-objc/MulleObjC), its startup shim and the
+runtime beneath them.
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 `FetchContent` does the rest.
@@ -112,6 +113,7 @@ executable (named after the repository directory) against them:
 
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
+* `MulleObjC-startup` — the `__register_mulle_objc_universe` shim an executable needs
 
 `FetchContent` keeps the clones in `stash/` (`FETCHCONTENT_BASE_DIR`) instead of
 the build directory, so several build directories share one checkout.
@@ -123,9 +125,9 @@ A dependency's headers come from one of two roots:
   constituents' headers separate, so `#include <mulle-sprintf/mulle-sprintf.h>`
   still resolves even though `mulle-sprintf` is compiled into
   `libmulle-core.a`. It hands out its own `src/` directory.
-* a **regular** library (`MulleObjC`, `mulle-objc-runtime`) copies its headers
-  into `${CMAKE_BINARY_DIR}/include`, an installed-looking tree that serves all
-  of them at once.
+* a **regular** library (`MulleObjC`, `MulleObjC-startup`,
+  `mulle-objc-runtime`) copies its headers into `${CMAKE_BINARY_DIR}/include`,
+  an installed-looking tree that serves all of them at once.
 
 The include roots are declared after the dependency that owns them, so a library
 never compiles against its own headers through the global path, while everything

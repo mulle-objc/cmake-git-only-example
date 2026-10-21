@@ -13,7 +13,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        # macos-15-intel, not macos-15 (arm64): mulle-clang currently fails
+        # on arm64 with "inline assembly requires more registers than
+        # available" for a fragile @try block with many locals.
+        os: [ubuntu-24.04, macos-15-intel]
 
     runs-on: ${{ matrix.os }}
 

@@ -19,11 +19,11 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # This action installs mulle-clang
       - name: Install mulle-clang
-        uses: mulle-cc/github-ci@v12
+        uses: mulle-cc/github-ci@v13
 
       - name: Install MulleWebFoundation system libraries (Linux)
         if: runner.os == 'Linux'
@@ -37,7 +37,22 @@ jobs:
           cmake --version
           mulle-clang --version
 
+      # mulle-clang is a plain LLVM clang, not Apple clang: it does not ask
+      # xcrun for an SDK on its own, so without an explicit sysroot it can
+      # not find <libkern/OSByteOrder.h> and friends in the macOS SDK.
+      # The deployment target keeps the binary runnable on the image's macOS,
+      # instead of the (possibly newer) SDK version.
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -S . -B kitchen \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_C_COMPILER=mulle-clang \
+                -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+                -DCMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+
       - name: Configure
+        if: runner.os != 'macOS'
         run: |
           cmake -S . -B kitchen \
                 -DCMAKE_BUILD_TYPE=Release \

@@ -31,6 +31,18 @@ cmake --build kitchen --parallel
 ./kitchen/hello
 ```
 
+On macOS, `mulle-clang` does not discover the SDK on its own (that is an
+Apple clang feature, and since cmake 4 non-Apple compilers get no default
+sysroot), so point CMake at it:
+
+```sh
+cmake -S . -B kitchen \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_C_COMPILER=mulle-clang \
+      -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+```
+
 It prints:
 
 ```text

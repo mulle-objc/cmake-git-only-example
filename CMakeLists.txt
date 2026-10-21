@@ -21,12 +21,14 @@ get_filename_component( PROJECT_NAME "${PROJECT_DIR}" NAME)
 project( "${PROJECT_NAME}" VERSION 0.1.0 LANGUAGES C)
 
 
+# Keep the fetched sources in stash/ at the repository root, independent of
+# the build directory. This has to be set before include( FetchContent), which
+# declares the same cache variable. -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir>
+# overrides a clone with a local checkout.
+set( FETCHCONTENT_BASE_DIR "${PROJECT_DIR}/stash" CACHE PATH "where FetchContent stores dependency checkouts")
+
 include( FetchContent)
 
-# Keep the fetched sources in stash/ at the repository root, independent of
-# the build directory. -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir> overrides a clone
-# with a local checkout.
-set( FETCHCONTENT_BASE_DIR "${PROJECT_DIR}/stash" CACHE PATH "where FetchContent stores dependency checkouts")
 set( DEPENDENCY_TAG "master" CACHE STRING "branch or tag to fetch the dependencies from")
 
 
@@ -116,6 +118,14 @@ FetchContent_Declare( MulleWebFoundation
 FetchContent_MakeAvailable( MulleWebFoundation)
 include_directories( SYSTEM "${MulleWebFoundation_SOURCE_DIR}/src")
 
+# MulleWebFoundation compiles curl, expat and zlib into its static archive.
+# A static archive does not carry its file-path dependencies into the link
+# interface, so the executable names the system libraries here. curl is named
+# without find_package() so the linker can pick the shared library: the static
+# libcurl.a would drag in its own (large) dependency list.
+find_package( EXPAT REQUIRED)
+find_package( ZLIB REQUIRED)
+
 
 # Executable, named after the repository directory.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -128,6 +138,9 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 target_link_libraries( "${EXECUTABLE_NAME}"
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleWebFoundation>"
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation-startup>"
+   curl
+   EXPAT::EXPAT
+   ZLIB::ZLIB
 )
 
 # No explicit libm here: the libraries re-export their system libraries

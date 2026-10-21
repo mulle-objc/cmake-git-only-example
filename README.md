@@ -130,6 +130,12 @@ libraries below it arrive through the link because each library re-exports what
 it depends on. `WHOLE_ARCHIVE` keeps the Objective-C classes and the
 startup/all-load glue in the program.
 
+`MulleWebFoundation` is a static amalgamation, so its curl/expat/zlib
+file-path dependencies do not propagate through the link interface. The
+executable links `curl`, `EXPAT::EXPAT` and `ZLIB::ZLIB` explicitly. curl is
+named without `find_package()` so the linker can choose the shared library
+instead of pulling in all of static `libcurl.a`'s dependencies.
+
 ## Pinning a dependency or using your own checkout
 
 Pin all dependencies to a tag or branch with:

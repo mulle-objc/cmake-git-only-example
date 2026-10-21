@@ -31,7 +31,7 @@ Both are Git-ignored.
 The project and executable take their name from the directory you clone into, so
 rename the clone to rename your program.
 
-[![CI](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml/badge.svg)](https://github.com/MulleFoundation/cmake-git-only-example/actions/workflows/ci.yml)
+[![CI](https://github.com/mulle-objc/cmake-git-only-example/actions/workflows/ci.yml/badge.svg)](https://github.com/mulle-objc/cmake-git-only-example/actions/workflows/ci.yml)
 
 ## What it builds
 
@@ -61,7 +61,7 @@ The `MulleWebFoundation` branch is not the repository's default branch, so
 switch to it after cloning:
 
 ```sh
-git clone https://github.com/MulleFoundation/cmake-git-only-example.git
+git clone https://github.com/mulle-objc/cmake-git-only-example.git
 cd cmake-git-only-example
 git switch MulleWebFoundation
 ```

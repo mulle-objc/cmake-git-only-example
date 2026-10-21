@@ -6,8 +6,12 @@
 > [De Re mulle-objc](https://mulle-kybernetik.com/de-re-mulle-objc)
 > Developer Guide.
 
-#### 🧬 Build a MulleFoundation executable with `mulle-clang`, CMake and Git
+#### 🧬 Build a MulleObjC executable with `mulle-clang`, CMake and Git
 
+This branch is the stripped-down companion to the MulleFoundation example: it
+removes the Foundation layers (`MulleFoundationBase`, `MulleFoundation` and
+`MulleFoundation-startup`) and the `MulleBase64` category, and builds only
+[MulleObjC](https://github.com/mulle-objc/MulleObjC) and the runtime beneath it.
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 `add_subdirectory()` does the rest.
@@ -15,9 +19,7 @@ Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 No [mulle-sde](https://github.com/mulle-sde/mulle-sde),
 no prebuilt SDK, no package manager — just [Git](https://git-scm.com/),
 [CMake](https://cmake.org/) and [mulle-clang](https://github.com/mulle-cc/mulle-clang-project)
-turning an Objective-C source file into a running
-[MulleFoundation](https://github.com/MulleFoundation/MulleFoundation)
-executable.
+turning an Objective-C source file into a running MulleObjC executable.
 
 By default the dependencies are fetched by CMake with `FetchContent`, straight
 from their Git repositories. The `transitive/` and `nontransitive/` variants
@@ -31,12 +33,27 @@ rename the clone to rename your program.
 
 ## What it builds
 
-`src/main.m` prints `VfL Bochum 1848`, then uses the MulleBase64 category on
-`NSData` to print its Base64 encoding:
+`src/main.m` defines a `Greeter` class, creates one instance in an autorelease
+pool and sends it a message:
+
+```objc
+#import <MulleObjC/MulleObjC.h>
+
+@interface Greeter : NSObject
+{
+   char   *_name;
+}
+
+- (id) initWithName:(char *) name;
+- (void) greet;
+
+@end
+```
+
+The program prints:
 
 ```text
-VfL Bochum 1848
-VmZMIEJvY2h1bSAxODQ4
+Hello, VfL Bochum 1848
 ```
 
 ## Requirements
@@ -52,17 +69,20 @@ macOS.
 
 ## Get the source
 
+The `MulleObjC` branch is not the repository's default branch, so switch to it
+after cloning:
+
 ```sh
 git clone https://github.com/MulleFoundation/cmake-git-only-example.git
 cd cmake-git-only-example
+git switch MulleObjC
 ```
 
 That is all the default (FetchContent) project needs — cmake clones the
 dependencies itself.
 
-
-The `transitive/` and `nontransitive/` variants use git submodules
-instead; fetch them with:
+The `transitive/` and `nontransitive/` variants use git submodules instead;
+fetch them with:
 
 ```sh
 git submodule update --init --recursive --remote
@@ -98,7 +118,7 @@ cmake --build build-nontransitive --parallel
 ./build-nontransitive/cmake-git-only-example
 ```
 
-All three print the same two lines.
+All three print the same line, `Hello, VfL Bochum 1848`.
 
 A Debug build is the same with a separate build directory:
 
@@ -120,13 +140,12 @@ Build outputs are Git-ignored.
   Point `-DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir>` at a local checkout to build
   against one you are editing.
 * [`transitive/CMakeLists.txt`](transitive/CMakeLists.txt) is the same transitive
-  link with plain git submodules. It names only the libraries `src/main.m` uses
-  directly; `MulleFoundationBase`, `MulleObjC`, `mulle-objc-runtime`,
-  `mulle-core` and `mulle-core-all-load` arrive through the link, because each
-  library re-exports what it depends on. The all-load libraries keep their
-  `WHOLE_ARCHIVE` semantics.
+  link with plain git submodules. It names only the library `src/main.m` uses
+  directly, `MulleObjC`; `mulle-objc-runtime`, `mulle-core` and
+  `mulle-core-all-load` arrive through the link, because each library re-exports
+  what it depends on. The all-load library keeps its `WHOLE_ARCHIVE` semantics.
 * [`nontransitive/CMakeLists.txt`](nontransitive/CMakeLists.txt) turns the
-  `MULLE_TRANSITIVE_*` switches off, names all eight libraries and writes the
+  `MULLE_TRANSITIVE_*` switches off, names all four libraries and writes the
   `WHOLE_ARCHIVE` wrappers out itself.
 
 Each project sets its own switches, so a build directory cannot end up with a
@@ -134,14 +153,13 @@ mixture of the shapes.
 
 ## How the build is wired
 
-Each project's [`CMakeLists.txt`](CMakeLists.txt) adds the
-dependencies in order and links the executable (named after the repository
-directory) against them:
+Each project's [`CMakeLists.txt`](CMakeLists.txt) adds the dependencies in order
+and links the executable (named after the repository directory) against them:
 
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
-* `MulleFoundationBase` / `MulleFoundation` / `MulleFoundation-startup` — Foundation classes and startup code
-* `MulleBase64` — the Base64 category used by `src/main.m`
+* `mulle-objc-tools` — command-line inspection tools (formerly `mulle-objc-list`);
+  checked out with the submodules, but not built or linked by this project
 
 Where a dependency's headers come from depends on the kind of library:
 
@@ -171,15 +189,11 @@ Register each dependency individually with `git submodule add -b master`, from a
 clean `stash/`:
 
 ```sh
-git submodule add -b master https://github.com/MulleWeb/MulleBase64.git stash/MulleBase64
 git submodule add -b master https://github.com/mulle-core/mulle-core.git stash/mulle-core
 git submodule add -b master https://github.com/mulle-core/mulle-core-all-load.git stash/mulle-core-all-load
-git submodule add -b master https://github.com/MulleFoundation/MulleFoundation.git stash/MulleFoundation
-git submodule add -b master https://github.com/MulleFoundation/MulleFoundationBase.git stash/MulleFoundationBase
-git submodule add -b master https://github.com/MulleFoundation/MulleFoundation-startup.git stash/MulleFoundation-startup
+git submodule add -b master https://github.com/mulle-objc/mulle-objc-runtime.git stash/mulle-objc-runtime
 git submodule add -b master https://github.com/mulle-objc/MulleObjC.git stash/MulleObjC
 git submodule add -b master https://github.com/mulle-objc/mulle-objc-tools.git stash/mulle-objc-tools
-git submodule add -b master https://github.com/mulle-objc/mulle-objc-runtime.git stash/mulle-objc-runtime
 ```
 
 Verify with:
@@ -231,5 +245,3 @@ CI currently validates Ubuntu and macOS; Windows is untested and depends on
   and what an `add_subdirectory()` consumer has to know about its headers
 * [`research/`](research/) — two minimal pure-cmake demos, each with its own
   README and measured result matrix
-* [`MISSING-REPOS.md`](MISSING-REPOS.md) — maintenance bookkeeping: checkouts
-  that still carry the pre-split `AddSubdirectorySupport.cmake`

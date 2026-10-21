@@ -6,7 +6,8 @@
 #
 # Same program and the same transitive link list as transitive/, but the
 # dependencies are not git submodules: cmake clones them from GitHub at
-# configure time with FetchContent. There is no stash/ and no recorded commit;
+# configure time with FetchContent. Only the MulleObjC layers are fetched;
+# there is no stash/ and no recorded commit;
 # GIT_TAG master means master. The cost is that a build needs network access,
 # and cmake caches the clone in ${CMAKE_BINARY_DIR}/_deps (delete it, or
 # configure --fresh, to move to a newer master).
@@ -93,28 +94,6 @@ FetchContent_Declare( MulleObjC
    GIT_TAG        "${DEPENDENCY_TAG}")
 FetchContent_MakeAvailable( MulleObjC)
 
-FetchContent_Declare( MulleFoundationBase
-   GIT_REPOSITORY https://github.com/MulleFoundation/MulleFoundationBase.git
-   GIT_TAG        "${DEPENDENCY_TAG}")
-FetchContent_MakeAvailable( MulleFoundationBase)
-include_directories( SYSTEM "${MulleFoundationBase_SOURCE_DIR}/src")
-
-FetchContent_Declare( MulleFoundation
-   GIT_REPOSITORY https://github.com/MulleFoundation/MulleFoundation.git
-   GIT_TAG        "${DEPENDENCY_TAG}")
-FetchContent_MakeAvailable( MulleFoundation)
-include_directories( SYSTEM "${MulleFoundation_SOURCE_DIR}/src")
-
-FetchContent_Declare( MulleFoundation-startup
-   GIT_REPOSITORY https://github.com/MulleFoundation/MulleFoundation-startup.git
-   GIT_TAG        "${DEPENDENCY_TAG}")
-FetchContent_MakeAvailable( MulleFoundation-startup)
-
-FetchContent_Declare( MulleBase64
-   GIT_REPOSITORY https://github.com/MulleWeb/MulleBase64.git
-   GIT_TAG        "${DEPENDENCY_TAG}")
-FetchContent_MakeAvailable( MulleBase64)
-
 
 # Executable, named after the repository directory.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -125,9 +104,7 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 
 # Only what src/main.m uses directly; the rest arrives through the link.
 target_link_libraries( "${EXECUTABLE_NAME}"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleBase64>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation-startup>"
+   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleObjC>"
 )
 
 # No explicit libm here: the libraries re-export their system libraries

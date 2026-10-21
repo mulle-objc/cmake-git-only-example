@@ -9,10 +9,9 @@
 #
 # Transitive is the normal contract of the mulle libraries: a subproject
 # re-exports its headers and its dependency link targets, so the executable
-# names only the libraries src/main.m uses directly - MulleBase64,
-# MulleFoundation and the startup library. MulleFoundationBase, MulleObjC,
+# names only the library src/main.m uses directly - MulleObjC.
 # mulle-objc-runtime, mulle-core and mulle-core-all-load arrive through the
-# link, the all-load ones keeping their WHOLE_ARCHIVE semantics.
+# link, the all-load one keeping its WHOLE_ARCHIVE semantics.
 #
 
 
@@ -66,15 +65,14 @@ set( IDE_SUPPORT OFF CACHE BOOL "Disable mulle-sde IDE helper targets")
 
 # Dependencies. A dependency's headers come from one of two roots:
 #
-#  * an amalgamated library - mulle-core, mulle-core-all-load,
-#    MulleFoundationBase, MulleFoundation - keeps its constituents' headers
-#    separate for the user, so <mulle-sprintf/mulle-sprintf.h> resolves even
-#    though mulle-sprintf is compiled into libmulle-core.a. It hands out its
-#    own src/ directory, and the consumer adds that root.
-#  * a regular library - MulleObjC, mulle-objc-runtime,
-#    MulleFoundation-startup, MulleBase64 - copies its headers into
-#    ${CMAKE_BINARY_DIR}/include, an installed-looking tree the consumer adds
-#    once for all of them.
+#  * an amalgamated library - mulle-core, mulle-core-all-load - keeps its
+#    constituents' headers separate for the user, so
+#    <mulle-sprintf/mulle-sprintf.h> resolves even though mulle-sprintf is
+#    compiled into libmulle-core.a. It hands out its own src/ directory, and
+#    the consumer adds that root.
+#  * a regular library - MulleObjC, mulle-objc-runtime - copies its headers
+#    into ${CMAKE_BINARY_DIR}/include, an installed-looking tree the consumer
+#    adds once for all of them.
 #
 # Those roots belong here and not inside the libraries: a library's own sources
 # need their dependencies' headers, and an INTERFACE include directory never
@@ -98,16 +96,6 @@ include_directories( SYSTEM "${CMAKE_BINARY_DIR}/include")
 
 add_subdirectory( "${STASH}/MulleObjC" "${CMAKE_BINARY_DIR}/MulleObjC")
 
-add_subdirectory( "${STASH}/MulleFoundationBase" "${CMAKE_BINARY_DIR}/MulleFoundationBase")
-include_directories( SYSTEM "${STASH}/MulleFoundationBase/src")
-
-add_subdirectory( "${STASH}/MulleFoundation" "${CMAKE_BINARY_DIR}/MulleFoundation")
-include_directories( SYSTEM "${STASH}/MulleFoundation/src")
-
-add_subdirectory( "${STASH}/MulleFoundation-startup" "${CMAKE_BINARY_DIR}/MulleFoundation-startup")
-
-add_subdirectory( "${STASH}/MulleBase64" "${CMAKE_BINARY_DIR}/MulleBase64")
-
 
 # Executable, named after the repository directory.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -118,9 +106,7 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 
 # Only what src/main.m uses directly; the rest arrives through the link.
 target_link_libraries( "${EXECUTABLE_NAME}"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleBase64>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation-startup>"
+   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleObjC>"
 )
 
 # No explicit libm here: the libraries re-export their system libraries

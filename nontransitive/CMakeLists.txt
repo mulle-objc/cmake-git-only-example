@@ -64,15 +64,14 @@ set( IDE_SUPPORT OFF CACHE BOOL "Disable mulle-sde IDE helper targets")
 
 # Dependencies. A dependency's headers come from one of two roots:
 #
-#  * an amalgamated library - mulle-core, mulle-core-all-load,
-#    MulleFoundationBase, MulleFoundation - keeps its constituents' headers
-#    separate for the user, so <mulle-sprintf/mulle-sprintf.h> resolves even
-#    though mulle-sprintf is compiled into libmulle-core.a. It hands out its
-#    own src/ directory, and the consumer adds that root.
-#  * a regular library - MulleObjC, mulle-objc-runtime,
-#    MulleFoundation-startup, MulleBase64 - copies its headers into
-#    ${CMAKE_BINARY_DIR}/include, an installed-looking tree the consumer adds
-#    once for all of them.
+#  * an amalgamated library - mulle-core, mulle-core-all-load - keeps its
+#    constituents' headers separate for the user, so
+#    <mulle-sprintf/mulle-sprintf.h> resolves even though mulle-sprintf is
+#    compiled into libmulle-core.a. It hands out its own src/ directory, and
+#    the consumer adds that root.
+#  * a regular library - MulleObjC, mulle-objc-runtime - copies its headers
+#    into ${CMAKE_BINARY_DIR}/include, an installed-looking tree the consumer
+#    adds once for all of them.
 #
 # Those roots belong here and not inside the libraries: a library's own sources
 # need their dependencies' headers, and an INTERFACE include directory never
@@ -96,16 +95,6 @@ include_directories( SYSTEM "${CMAKE_BINARY_DIR}/include")
 
 add_subdirectory( "${STASH}/MulleObjC" "${CMAKE_BINARY_DIR}/MulleObjC")
 
-add_subdirectory( "${STASH}/MulleFoundationBase" "${CMAKE_BINARY_DIR}/MulleFoundationBase")
-include_directories( SYSTEM "${STASH}/MulleFoundationBase/src")
-
-add_subdirectory( "${STASH}/MulleFoundation" "${CMAKE_BINARY_DIR}/MulleFoundation")
-include_directories( SYSTEM "${STASH}/MulleFoundation/src")
-
-add_subdirectory( "${STASH}/MulleFoundation-startup" "${CMAKE_BINARY_DIR}/MulleFoundation-startup")
-
-add_subdirectory( "${STASH}/MulleBase64" "${CMAKE_BINARY_DIR}/MulleBase64")
-
 
 # Executable, named after the repository directory.
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -126,10 +115,6 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 # that is included but not linked would race - research/cmake-order-demo/ is the
 # minimal repro of that case.
 target_link_libraries( "${EXECUTABLE_NAME}"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleBase64>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundationBase>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation-startup>"
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleObjC>"
    mulle-objc-runtime
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,mulle-core-all-load>"
@@ -137,10 +122,9 @@ target_link_libraries( "${EXECUTABLE_NAME}"
 )
 
 # libm is a separate library on Linux and other non-Apple Unix systems. The
-# transitive consumer gets it re-exported by MulleFoundation; here the
-# libraries are named individually, so it has to be added by hand. On Apple
-# platforms the math symbols are provided by the system; Windows has no POSIX
-# libm target.
+# transitive consumer gets it re-exported by MulleObjC; here the libraries are
+# named individually, so it has to be added by hand. On Apple platforms the
+# math symbols are provided by the system; Windows has no POSIX libm target.
 if( UNIX AND NOT APPLE)
    target_link_libraries( "${EXECUTABLE_NAME}" m)
 endif()

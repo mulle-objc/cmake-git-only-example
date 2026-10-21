@@ -49,4 +49,4 @@ jobs:
         run: |
           output="$(./build/cmake-git-only-example)"
           printf '%s\n' "$output"
-          test "$output" = "$(printf 'VfL Bochum 1848\nVmZMIEJvY2h1bSAxODQ4')"
+          test "$output" = "Hello, VfL Bochum 1848"

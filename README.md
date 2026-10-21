@@ -8,6 +8,10 @@
 
 #### 🧬 Build a MulleFoundation executable with `mulle-clang`, CMake and Git
 
+This is the full example, with the `MulleFoundationBase`, `MulleFoundation` and
+`MulleFoundation-startup` layers. The `MulleObjC` branch is the stripped-down
+sibling that builds against `MulleObjC` alone.
+
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 `add_subdirectory()` does the rest.
@@ -55,6 +59,7 @@ macOS.
 ```sh
 git clone https://github.com/MulleFoundation/cmake-git-only-example.git
 cd cmake-git-only-example
+git switch MulleFoundation
 ```
 
 That is all the default (FetchContent) project needs — cmake clones the

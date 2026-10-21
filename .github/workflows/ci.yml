@@ -13,10 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macos-15-intel, not macos-15 (arm64): mulle-clang currently fails
-        # on arm64 with "inline assembly requires more registers than
-        # available" for a fragile @try block with many locals.
-        os: [ubuntu-24.04, macos-15-intel]
+        os: [ubuntu-24.04, macos-15]
 
     runs-on: ${{ matrix.os }}
 
@@ -45,12 +42,16 @@ jobs:
       # not find <libkern/OSByteOrder.h> and friends in the macOS SDK.
       # The deployment target keeps the binary runnable on the image's macOS,
       # instead of the (possibly newer) SDK version.
+      # Build x86_64 even on the arm64 runner: mulle-clang's fragile @try
+      # codegen currently runs out of registers on arm64. Rosetta executes
+      # the resulting binary.
       - name: Configure (macOS)
         if: runner.os == 'macOS'
         run: |
           cmake -S . -B kitchen \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_COMPILER=mulle-clang \
+                -DCMAKE_OSX_ARCHITECTURES=x86_64 \
                 -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
                 -DCMAKE_OSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
 

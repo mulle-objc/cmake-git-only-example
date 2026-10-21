@@ -6,11 +6,12 @@
 > [De Re mulle-objc](https://mulle-kybernetik.com/de-re-mulle-objc)
 > Developer Guide.
 
-#### 🧬 Build a MulleFoundation executable with `mulle-clang`, CMake and Git
+#### 🧬 Build a MulleWebFoundation executable with `mulle-clang`, CMake and Git
 
-This is the full example, with the `MulleFoundationBase`, `MulleFoundation` and
-`MulleFoundation-startup` layers. The `MulleObjC` branch is the stripped-down
-sibling that builds against `MulleObjC` alone.
+This branch adds `MulleWebFoundation` on top of the MulleFoundation example:
+the full Foundation plus the web client stack (curl, expat, zlib, OpenSSL and
+the `MulleWeb` libraries). The `MulleObjC` branch is the stripped-down sibling
+that builds against `MulleObjC` alone.
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
 `FetchContent` does the rest.
@@ -20,7 +21,7 @@ no prebuilt SDK, no package manager and no git submodules — just
 [Git](https://git-scm.com/), [CMake](https://cmake.org/) and
 [mulle-clang](https://github.com/mulle-cc/mulle-clang-project) turning an
 Objective-C source file into a running
-[MulleFoundation](https://github.com/MulleFoundation/MulleFoundation)
+[MulleWebFoundation](https://github.com/MulleWeb/MulleWebFoundation)
 executable.
 
 CMake fetches the dependencies straight from their Git repositories at
@@ -34,8 +35,8 @@ rename the clone to rename your program.
 
 ## What it builds
 
-`src/main.m` prints `VfL Bochum 1848`, then uses the MulleBase64 category on
-`NSData` to print its Base64 encoding:
+`src/main.m` prints `VfL Bochum 1848`, then uses the `MulleBase64` category that
+`MulleWebFoundation` amalgamates on `NSData` to print its Base64 encoding:
 
 ```text
 VfL Bochum 1848
@@ -49,19 +50,20 @@ VmZMIEJvY2h1bSAxODQ4
 | [Git](https://git-scm.com/) | any recent version | Clone the repo and its dependencies |
 | [CMake](https://cmake.org/) | 3.30 or newer | Configure and build |
 | [mulle-clang](https://github.com/mulle-cc/mulle-clang-project) | a current release | Compile the Objective-C and C sources |
+| curl, expat, zlib and OpenSSL development files | system packages | C libraries used by MulleWebFoundation |
 
 Commands below target a Unix-like shell. CI currently validates Ubuntu and
 macOS.
 
 ## Get the source
 
-The `MulleFoundation` branch is not the repository's default branch, so switch
-to it after cloning:
+The `MulleWebFoundation` branch is not the repository's default branch, so
+switch to it after cloning:
 
 ```sh
 git clone https://github.com/MulleFoundation/cmake-git-only-example.git
 cd cmake-git-only-example
-git switch MulleFoundation
+git switch MulleWebFoundation
 ```
 
 There is no submodule step: the first configure fetches everything into
@@ -99,7 +101,7 @@ executable (named after the repository directory) against them:
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
 * `MulleFoundationBase` / `MulleFoundation` / `MulleFoundation-startup` — Foundation classes and startup code
-* `MulleBase64` — the Base64 category used by `src/main.m`
+* `MulleWebFoundation` — the web client stack (and its amalgamated `MulleBase64`)
 
 `FetchContent` keeps the clones in `stash/` (`FETCHCONTENT_BASE_DIR`) instead of
 the build directory, so several build directories share one checkout.
@@ -108,12 +110,12 @@ the build directory, so several build directories share one checkout.
 A dependency's headers come from one of two roots:
 
 * an **amalgamated** library (`mulle-core`, `mulle-core-all-load`,
-  `MulleFoundationBase`, `MulleFoundation`) keeps its constituents' headers
-  separate, so `#include <mulle-sprintf/mulle-sprintf.h>` still resolves even
-  though `mulle-sprintf` is compiled into `libmulle-core.a`. It hands out its own
-  `src/` directory.
+  `MulleFoundationBase`, `MulleFoundation`, `MulleWebFoundation`) keeps its
+  constituents' headers separate, so `#include <mulle-sprintf/mulle-sprintf.h>`
+  still resolves even though `mulle-sprintf` is compiled into
+  `libmulle-core.a`. It hands out its own `src/` directory.
 * a **regular** library (`MulleObjC`, `mulle-objc-runtime`,
-  `MulleFoundation-startup`, `MulleBase64`) copies its headers into
+  `MulleFoundation-startup`) copies its headers into
   `${CMAKE_BINARY_DIR}/include`, an installed-looking tree that serves all of
   them at once.
 
@@ -123,10 +125,10 @@ above it — and the executable — does see the root. `SYSTEM` keeps dependency
 warnings out of the build output.
 
 The executable names only the libraries `src/main.m` uses directly:
-`MulleBase64`, `MulleFoundation` and `MulleFoundation-startup`. The others
-arrive through the link because each library re-exports what it depends on.
-`WHOLE_ARCHIVE` keeps the Objective-C classes and the startup/all-load glue in
-the program.
+`MulleWebFoundation` and `MulleFoundation-startup`. MulleFoundation and the
+libraries below it arrive through the link because each library re-exports what
+it depends on. `WHOLE_ARCHIVE` keeps the Objective-C classes and the
+startup/all-load glue in the program.
 
 ## Pinning a dependency or using your own checkout
 

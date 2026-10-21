@@ -110,10 +110,11 @@ FetchContent_Declare( MulleFoundation-startup
    GIT_TAG        "${DEPENDENCY_TAG}")
 FetchContent_MakeAvailable( MulleFoundation-startup)
 
-FetchContent_Declare( MulleBase64
-   GIT_REPOSITORY https://github.com/MulleWeb/MulleBase64.git
+FetchContent_Declare( MulleWebFoundation
+   GIT_REPOSITORY https://github.com/MulleWeb/MulleWebFoundation.git
    GIT_TAG        "${DEPENDENCY_TAG}")
-FetchContent_MakeAvailable( MulleBase64)
+FetchContent_MakeAvailable( MulleWebFoundation)
+include_directories( SYSTEM "${MulleWebFoundation_SOURCE_DIR}/src")
 
 
 # Executable, named after the repository directory.
@@ -125,8 +126,7 @@ add_executable( "${EXECUTABLE_NAME}" "${PROJECT_DIR}/src/main.m")
 
 # Only what src/main.m uses directly; the rest arrives through the link.
 target_link_libraries( "${EXECUTABLE_NAME}"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleBase64>"
-   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation>"
+   "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleWebFoundation>"
    "$<LINK_LIBRARY:WHOLE_ARCHIVE,MulleFoundation-startup>"
 )
 

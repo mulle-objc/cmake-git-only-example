@@ -25,6 +25,12 @@ jobs:
       - name: Install mulle-clang
         uses: mulle-cc/github-ci@v12
 
+      - name: Install MulleWebFoundation system libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libexpat1-dev zlib1g-dev
+
       - name: Show tool versions
         run: |
           git --version

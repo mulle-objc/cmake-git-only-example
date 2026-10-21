@@ -21,12 +21,14 @@ get_filename_component( PROJECT_NAME "${PROJECT_DIR}" NAME)
 project( "${PROJECT_NAME}" VERSION 0.1.0 LANGUAGES C)
 
 
+# Keep the fetched sources in stash/ at the repository root, independent of
+# the build directory. This has to be set before include( FetchContent), which
+# declares the same cache variable. -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir>
+# overrides a clone with a local checkout.
+set( FETCHCONTENT_BASE_DIR "${PROJECT_DIR}/stash" CACHE PATH "where FetchContent stores dependency checkouts")
+
 include( FetchContent)
 
-# Keep the fetched sources in stash/ at the repository root, independent of
-# the build directory. -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir> overrides a clone
-# with a local checkout.
-set( FETCHCONTENT_BASE_DIR "${PROJECT_DIR}/stash" CACHE PATH "where FetchContent stores dependency checkouts")
 set( DEPENDENCY_TAG "master" CACHE STRING "branch or tag to fetch the dependencies from")
 
 

@@ -158,8 +158,8 @@ and links the executable (named after the repository directory) against them:
 
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
-* `mulle-objc-tools` — command-line inspection tools (formerly `mulle-objc-list`);
-  checked out with the submodules, but not built or linked by this project
+* `mulle-objc-list` — command-line inspection tools; checked out with the
+  submodules, but not built or linked by this project
 
 Where a dependency's headers come from depends on the kind of library:
 
@@ -193,7 +193,7 @@ git submodule add -b master https://github.com/mulle-core/mulle-core.git stash/m
 git submodule add -b master https://github.com/mulle-core/mulle-core-all-load.git stash/mulle-core-all-load
 git submodule add -b master https://github.com/mulle-objc/mulle-objc-runtime.git stash/mulle-objc-runtime
 git submodule add -b master https://github.com/mulle-objc/MulleObjC.git stash/MulleObjC
-git submodule add -b master https://github.com/mulle-objc/mulle-objc-tools.git stash/mulle-objc-tools
+git submodule add -b master https://github.com/mulle-objc/mulle-objc-list.git stash/mulle-objc-list
 ```
 
 Verify with:

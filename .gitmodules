@@ -14,7 +14,7 @@
 	path = stash/mulle-objc-runtime
 	url = https://github.com/mulle-objc/mulle-objc-runtime.git
 	branch = master
-[submodule "stash/mulle-objc-tools"]
-	path = stash/mulle-objc-tools
-	url = https://github.com/mulle-objc/mulle-objc-tools.git
+[submodule "stash/mulle-objc-list"]
+	path = stash/mulle-objc-list
+	url = https://github.com/mulle-objc/mulle-objc-list.git
 	branch = master

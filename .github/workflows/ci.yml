@@ -14,17 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, macos-14]
-        consumer: [transitive, nontransitive, fetchcontent]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out source
         uses: actions/checkout@v4
-
-      - name: Check out submodules (tracking master)
-        if: matrix.consumer != 'fetchcontent'
-        run: git submodule update --init --recursive --remote
 
       # This action installs mulle-clang
       - name: Install mulle-clang
@@ -38,15 +33,15 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S ${{ matrix.consumer == 'fetchcontent' && '.' || matrix.consumer }} -B build \
+          cmake -S . -B kitchen \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_COMPILER=mulle-clang
 
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build kitchen --parallel
 
       - name: Run example
         run: |
-          output="$(./build/cmake-git-only-example)"
+          output="$(./kitchen/cmake-git-only-example)"
           printf '%s\n' "$output"
           test "$output" = "$(printf 'VfL Bochum 1848\nVmZMIEJvY2h1bSAxODQ4')"

@@ -1,19 +1,18 @@
 #
-# FetchContent consumer (default).
+# FetchContent consumer.
 #
-#   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+#   cmake -S . -B kitchen -DCMAKE_BUILD_TYPE=Release \
 #         -DCMAKE_C_COMPILER=mulle-clang
 #
-# Same program and the same transitive link list as transitive/, but the
-# dependencies are not git submodules: cmake clones them from GitHub at
-# configure time with FetchContent. There is no stash/ and no recorded commit;
-# GIT_TAG master means master. The cost is that a build needs network access,
-# and cmake caches the clone in ${CMAKE_BINARY_DIR}/_deps (delete it, or
-# configure --fresh, to move to a newer master).
+# cmake clones the dependencies from GitHub at configure time with
+# FetchContent and keeps them in the stash/ directory next to this file. There
+# is no .gitmodules and no recorded commit: GIT_TAG master means master. The
+# cost is that a build needs network access. Delete stash/ (or configure
+# --fresh) to move to a newer master.
 #
 
 
-cmake_minimum_required( VERSION 3.24...99.99)
+cmake_minimum_required( VERSION 3.30...99.99)
 
 # The project and its executable are named after the repository directory,
 # which is this one.
@@ -24,8 +23,10 @@ project( "${PROJECT_NAME}" VERSION 0.1.0 LANGUAGES C)
 
 include( FetchContent)
 
-# Fetch the same dependencies the stash/ holds for the other consumers.
-# -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir> overrides a clone with a local checkout.
+# Keep the fetched sources in stash/ at the repository root, independent of
+# the build directory. -DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir> overrides a clone
+# with a local checkout.
+set( FETCHCONTENT_BASE_DIR "${PROJECT_DIR}/stash" CACHE PATH "where FetchContent stores dependency checkouts")
 set( DEPENDENCY_TAG "master" CACHE STRING "branch or tag to fetch the dependencies from")
 
 
@@ -64,9 +65,8 @@ set( IDE_SUPPORT OFF CACHE BOOL "Disable mulle-sde IDE helper targets")
 
 
 # Dependencies, in dependency order. FetchContent_MakeAvailable() clones (or
-# reuses) the source and calls add_subdirectory() on it, so each root is again
-# declared directly after the dependency that owns it. See transitive/ for
-# the header-root rules.
+# reuses) the source under stash/ and calls add_subdirectory() on it, so each
+# root is again declared directly after the dependency that owns it.
 FetchContent_Declare( mulle-core
    GIT_REPOSITORY https://github.com/mulle-core/mulle-core.git
    GIT_TAG        "${DEPENDENCY_TAG}")

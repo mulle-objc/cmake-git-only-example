@@ -14,17 +14,17 @@ removes the Foundation layers (`MulleFoundationBase`, `MulleFoundation` and
 [MulleObjC](https://github.com/mulle-objc/MulleObjC) and the runtime beneath it.
 
 Three tools, zero magic: clone this repo, point CMake at `mulle-clang`, and
-`add_subdirectory()` does the rest.
+`FetchContent` does the rest.
 
 No [mulle-sde](https://github.com/mulle-sde/mulle-sde),
-no prebuilt SDK, no package manager — just [Git](https://git-scm.com/),
-[CMake](https://cmake.org/) and [mulle-clang](https://github.com/mulle-cc/mulle-clang-project)
-turning an Objective-C source file into a running MulleObjC executable.
+no prebuilt SDK, no package manager and no git submodules — just
+[Git](https://git-scm.com/), [CMake](https://cmake.org/) and
+[mulle-clang](https://github.com/mulle-cc/mulle-clang-project) turning an
+Objective-C source file into a running MulleObjC executable.
 
-By default the dependencies are fetched by CMake with `FetchContent`, straight
-from their Git repositories. The `transitive/` and `nontransitive/` variants
-instead use plain Git submodules (see [`.gitmodules`](.gitmodules)). Either way
-they are built from source alongside your own code.
+CMake fetches the dependencies straight from their Git repositories at
+configure time and keeps them in `stash/`. `kitchen/` is the build directory.
+Both are Git-ignored.
 
 The project and executable take their name from the directory you clone into, so
 rename the clone to rename your program.
@@ -61,7 +61,7 @@ Hello, VfL Bochum 1848
 | Requirement | Version | Purpose |
 |---|---:|---|
 | [Git](https://git-scm.com/) | any recent version | Clone the repo and its dependencies |
-| [CMake](https://cmake.org/) | 3.24 or newer | Configure and build |
+| [CMake](https://cmake.org/) | 3.30 or newer | Configure and build |
 | [mulle-clang](https://github.com/mulle-cc/mulle-clang-project) | a current release | Compile the Objective-C and C sources |
 
 Commands below target a Unix-like shell. CI currently validates Ubuntu and
@@ -78,170 +78,93 @@ cd cmake-git-only-example
 git switch MulleObjC
 ```
 
-That is all the default (FetchContent) project needs — cmake clones the
-dependencies itself.
-
-The `transitive/` and `nontransitive/` variants use git submodules instead;
-fetch them with:
-
-```sh
-git submodule update --init --recursive --remote
-```
-
-The submodules track `master` (`branch = master` in `.gitmodules`), so
-`--remote` checks out the current tip of each dependency. A plain
-`git clone --recurse-submodules` would instead give you the commit recorded in
-the repository. Update them later with the same command.
+There is no submodule step: the first configure fetches everything into
+`stash/`.
 
 ## Build
 
-Three self-contained projects, sharing the code in `src/`. Point cmake at the
-one you want:
+`kitchen/` is the build directory, kept out of the source tree:
 
 ```sh
-# FetchContent: cmake clones the dependencies at configure time (recommended)
-cmake -S . -B build \
+cmake -S . -B kitchen \
       -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build --parallel
-./build/cmake-git-only-example
-
-# git submodules: the libraries re-export what they depend on
-cmake -S transitive -B build-transitive \
-      -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build-transitive --parallel
-./build-transitive/cmake-git-only-example
-
-# git submodules, nothing re-exported: the project names every library itself
-cmake -S nontransitive -B build-nontransitive \
-      -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build-nontransitive --parallel
-./build-nontransitive/cmake-git-only-example
+cmake --build kitchen --parallel
+./kitchen/cmake-git-only-example
 ```
 
-All three print the same line, `Hello, VfL Bochum 1848`.
+It prints `Hello, VfL Bochum 1848`.
 
-A Debug build is the same with a separate build directory:
+A Debug build is the same with its own build directory:
 
 ```sh
-cmake -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
-cmake --build build-debug --parallel
-./build-debug/cmake-git-only-example
+cmake -S . -B kitchen-debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=mulle-clang
+cmake --build kitchen-debug --parallel
+./kitchen-debug/cmake-git-only-example
 ```
 
-There is no install step; delete the build directory for a clean configure.
-Build outputs are Git-ignored.
-
-## The three consumers
-
-* [`CMakeLists.txt`](CMakeLists.txt) is the recommended project and the default
-  one (`cmake -S .`). It uses the transitive link (below), and hands the dependency
-  checkout to `FetchContent`: each dependency is cloned from GitHub at configure
-  time, tracking `master` (`-DDEPENDENCY_TAG=` picks another branch or tag).
-  Point `-DFETCHCONTENT_SOURCE_DIR_<NAME>=<dir>` at a local checkout to build
-  against one you are editing.
-* [`transitive/CMakeLists.txt`](transitive/CMakeLists.txt) is the same transitive
-  link with plain git submodules. It names only the library `src/main.m` uses
-  directly, `MulleObjC`; `mulle-objc-runtime`, `mulle-core` and
-  `mulle-core-all-load` arrive through the link, because each library re-exports
-  what it depends on. The all-load library keeps its `WHOLE_ARCHIVE` semantics.
-* [`nontransitive/CMakeLists.txt`](nontransitive/CMakeLists.txt) turns the
-  `MULLE_TRANSITIVE_*` switches off, names all four libraries and writes the
-  `WHOLE_ARCHIVE` wrappers out itself.
-
-Each project sets its own switches, so a build directory cannot end up with a
-mixture of the shapes.
+There is no install step. Delete `kitchen/` for a clean build; delete both
+`kitchen/` and `stash/` to configure from scratch and fetch fresh dependencies.
 
 ## How the build is wired
 
-Each project's [`CMakeLists.txt`](CMakeLists.txt) adds the dependencies in order
-and links the executable (named after the repository directory) against them:
+[`CMakeLists.txt`](CMakeLists.txt) adds the dependencies in order and links the
+executable (named after the repository directory) against them:
 
 * `mulle-core` / `mulle-core-all-load` — base C infrastructure
 * `mulle-objc-runtime` / `MulleObjC` — the mulle-objc runtime and language support
-* `mulle-objc-list` — command-line inspection tools; checked out with the
-  submodules, but not built or linked by this project
 
-Where a dependency's headers come from depends on the kind of library:
+`FetchContent` keeps the clones in `stash/` (`FETCHCONTENT_BASE_DIR`) instead of
+the build directory, so several build directories share one checkout.
+`DEPENDENCY_TAG` chooses the revision and defaults to `master`.
 
-* an **amalgamated** library keeps its constituents' headers separate, so
-  `#include <mulle-sprintf/mulle-sprintf.h>` still resolves even though
-  `mulle-sprintf` is compiled into `libmulle-core.a`. It hands out its own
-  `src/` directory.
-* a **regular** library copies its headers into `${CMAKE_BINARY_DIR}/include`,
-  an installed-looking tree that serves all of them at once.
+A dependency's headers come from one of two roots:
 
-The matching include roots are declared in the consumer file, following two
-rules:
+* an **amalgamated** library (`mulle-core`, `mulle-core-all-load`) keeps its
+  constituents' headers separate, so `#include <mulle-sprintf/mulle-sprintf.h>`
+  still resolves even though `mulle-sprintf` is compiled into
+  `libmulle-core.a`. It hands out its own `src/` directory.
+* a **regular** library (`MulleObjC`, `mulle-objc-runtime`) copies its headers
+  into `${CMAKE_BINARY_DIR}/include`, an installed-looking tree that serves all
+  of them at once.
 
-* they are declared here and not inside the libraries, because an `INTERFACE`
-  include directory reaches a library's consumers and never its own sources —
-  while a library's own sources need their dependencies' headers, too;
-* each root is declared *after* the `add_subdirectory()` that owns it, so that
-  library never compiles against its own headers through the global path, and
-  everything above it (and the executable) does see the root.
+The include roots are declared after the dependency that owns them, so a library
+never compiles against its own headers through the global path, while everything
+above it — and the executable — does see the root. `SYSTEM` keeps dependency
+warnings out of the build output.
 
-`BASICS.md` has the rules in full, with the three shapes an `add_subdirectory()`
-consumer can put a mulle library in.
+## Pinning a dependency or using your own checkout
 
-## Setting up the submodules from scratch (maintainers)
-
-Register each dependency individually with `git submodule add -b master`, from a
-clean `stash/`:
+Pin all dependencies to a tag or branch with:
 
 ```sh
-git submodule add -b master https://github.com/mulle-core/mulle-core.git stash/mulle-core
-git submodule add -b master https://github.com/mulle-core/mulle-core-all-load.git stash/mulle-core-all-load
-git submodule add -b master https://github.com/mulle-objc/mulle-objc-runtime.git stash/mulle-objc-runtime
-git submodule add -b master https://github.com/mulle-objc/MulleObjC.git stash/MulleObjC
-git submodule add -b master https://github.com/mulle-objc/mulle-objc-list.git stash/mulle-objc-list
+cmake -S . -B kitchen -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
+      -DDEPENDENCY_TAG=0.30.0
 ```
 
-Verify with:
+To build against a checkout you are editing, override just that dependency:
 
 ```sh
-git status --short
-git submodule status
-```
-
-Each `stash/<name>` should show as a single added gitlink, and each
-dependency should list one commit SHA.
-
-## Building against your own checkouts
-
-To edit a dependency and rebuild against it immediately, point the build at
-your working checkout instead of a fresh clone.
-
-With the default project, override one dependency at a time:
-
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
+cmake -S . -B kitchen -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
       -DFETCHCONTENT_SOURCE_DIR_MULLE-CORE=/path/to/your/mulle-core
 ```
 
-With `transitive/` or `nontransitive/`, `STASH_DIR` names a directory of
-checkouts next to the repository root. `stash2/` is the Git-ignored local one
-(symlink each dependency into it, or point `-DSTASH_DIR=` anywhere):
-
-```sh
-cmake -S transitive -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=mulle-clang \
-      -DSTASH_DIR=stash2
-```
+FetchContent caches the clones in `stash/`, so a later configure does not
+download again. Delete `stash/` (or configure with `--fresh`) to move to a newer
+`master`.
 
 ## Platform notes
 
-* Linux and other non-Apple Unix: `--export-dynamic`; `libm` is re-exported to
-  the transitive consumer and linked explicitly by the nontransitive one
+* Linux and other non-Apple Unix: `--export-dynamic`; `libm` is re-exported by
+  the libraries
 * macOS: required symbols exported individually; math symbols come from the system
 * Windows: exports all symbols needed by the runtime, no `libm` target;
-  output is `cmake-git-only-example.exe`, possibly under `build/Release/` with
+  output is `cmake-git-only-example.exe`, possibly under `kitchen/Release/` with
   a multi-config generator
 
 CI currently validates Ubuntu and macOS; Windows is untested and depends on
-`mulle-clang`/runtime/submodule availability there.
+`mulle-clang`/runtime availability there.
 
 ## More
 
-* [`BASICS.md`](BASICS.md) — the three cmake shapes a mulle library must support
-  and what an `add_subdirectory()` consumer has to know about its headers
-* [`research/`](research/) — two minimal pure-cmake demos, each with its own
-  README and measured result matrix
+* [De Re mulle-objc — Organizing a Project](https://mulle-kybernetik.com/de-re-mulle-objc/project.html)
+  — the long-form explanation of this `CMakeLists.txt`
